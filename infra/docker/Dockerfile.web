@@ -1,0 +1,24 @@
+# Build context: repository root (installs workspace; runs Next.js production server)
+FROM node:20-bookworm-slim
+
+RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
+
+WORKDIR /repo
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/web ./apps/web
+COPY packages/shared-types ./packages/shared-types
+
+RUN pnpm install --frozen-lockfile
+
+ENV NEXT_TELEMETRY_DISABLED=1 \
+    NODE_ENV=production
+
+RUN pnpm --filter @amca/web build
+
+EXPOSE 3000
+
+ENV HOSTNAME=0.0.0.0 \
+    PORT=3000
+
+CMD ["pnpm", "--filter", "@amca/web", "exec", "next", "start", "-H", "0.0.0.0", "-p", "3000"]

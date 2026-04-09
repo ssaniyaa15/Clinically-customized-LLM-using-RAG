@@ -1,0 +1,1351 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Autonomous Multimodal Clinical AI Assistant",
+    "description": "API service for the AMCA platform.",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/monitoring/drift": {
+      "get": {
+        "tags": [
+          "monitoring"
+        ],
+        "summary": "Get Latest Drift",
+        "operationId": "get_latest_drift_monitoring_drift_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatisticalDriftReport"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/monitoring/performance": {
+      "get": {
+        "tags": [
+          "monitoring"
+        ],
+        "summary": "Get Latest Performance",
+        "operationId": "get_latest_performance_monitoring_performance_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PerformanceSnapshot"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/monitoring/ingest": {
+      "post": {
+        "tags": [
+          "monitoring"
+        ],
+        "summary": "Ingest Monitoring",
+        "operationId": "ingest_monitoring_monitoring_ingest_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MonitoringPayload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MonitoringIngestResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/compliance/audit-trail": {
+      "get": {
+        "tags": [
+          "compliance"
+        ],
+        "summary": "Get Audit Trail",
+        "operationId": "get_audit_trail_compliance_audit_trail_get",
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AuditEntry"
+                  },
+                  "title": "Response Get Audit Trail Compliance Audit Trail Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/compliance/samd-metadata": {
+      "get": {
+        "tags": [
+          "compliance"
+        ],
+        "summary": "Get Samd Metadata",
+        "operationId": "get_samd_metadata_compliance_samd_metadata_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaMDMetadata"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/gate/confirm": {
+      "post": {
+        "tags": [
+          "human-in-loop"
+        ],
+        "summary": "Confirm Recommendation",
+        "operationId": "confirm_recommendation_gate_confirm_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmPayload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GateActionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/gate/override": {
+      "post": {
+        "tags": [
+          "human-in-loop"
+        ],
+        "summary": "Override Recommendation",
+        "operationId": "override_recommendation_gate_override_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OverridePayload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GateActionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/fhir/smart-manifest": {
+      "get": {
+        "tags": [
+          "fhir"
+        ],
+        "summary": "Get Smart Manifest",
+        "operationId": "get_smart_manifest_fhir_smart_manifest_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Get Smart Manifest Fhir Smart Manifest Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/fhir/diagnostic-report": {
+      "post": {
+        "tags": [
+          "fhir"
+        ],
+        "summary": "Post Diagnostic Report",
+        "operationId": "post_diagnostic_report_fhir_diagnostic_report_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DiagnosticReportPayload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Post Diagnostic Report Fhir Diagnostic Report Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/feedback": {
+      "post": {
+        "tags": [
+          "feedback"
+        ],
+        "summary": "Post Feedback",
+        "operationId": "post_feedback_feedback_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeedbackPayload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedbackResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/output/latest-recommendation": {
+      "get": {
+        "tags": [
+          "output"
+        ],
+        "summary": "Get Latest Recommendation",
+        "operationId": "get_latest_recommendation_output_latest_recommendation_get",
+        "parameters": [
+          {
+            "name": "patient_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Patient identifier",
+              "default": "patient-001",
+              "title": "Patient Id"
+            },
+            "description": "Patient identifier"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GatedRecommendation"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "summary": "Root",
+        "operationId": "root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Root  Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AuditEntry": {
+        "properties": {
+          "patient_id": {
+            "type": "string",
+            "title": "Patient Id"
+          },
+          "clinician_id": {
+            "type": "string",
+            "title": "Clinician Id"
+          },
+          "action_taken": {
+            "type": "string",
+            "title": "Action Taken"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp"
+          },
+          "recommendation_payload": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Recommendation Payload"
+          },
+          "electronic_signature_hash": {
+            "type": "string",
+            "title": "Electronic Signature Hash"
+          }
+        },
+        "type": "object",
+        "required": [
+          "patient_id",
+          "clinician_id",
+          "action_taken",
+          "timestamp",
+          "recommendation_payload",
+          "electronic_signature_hash"
+        ],
+        "title": "AuditEntry"
+      },
+      "ClinicalRecommendation-Input": {
+        "properties": {
+          "ddx": {
+            "$ref": "#/components/schemas/DDxOutput"
+          },
+          "treatment": {
+            "$ref": "#/components/schemas/TreatmentPlan"
+          },
+          "risk": {
+            "$ref": "#/components/schemas/RiskPrognosisOutput"
+          },
+          "explanations": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ExplanationBundle"
+            },
+            "type": "object",
+            "title": "Explanations"
+          },
+          "generated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Generated At"
+          },
+          "uncertainty_score": {
+            "type": "number",
+            "title": "Uncertainty Score"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ddx",
+          "treatment",
+          "risk",
+          "explanations",
+          "generated_at",
+          "uncertainty_score"
+        ],
+        "title": "ClinicalRecommendation"
+      },
+      "ClinicalRecommendation-Output": {
+        "properties": {
+          "ddx": {
+            "$ref": "#/components/schemas/DDxOutput"
+          },
+          "treatment": {
+            "$ref": "#/components/schemas/TreatmentPlan"
+          },
+          "risk": {
+            "$ref": "#/components/schemas/RiskPrognosisOutput"
+          },
+          "explanations": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ExplanationBundle"
+            },
+            "type": "object",
+            "title": "Explanations"
+          },
+          "generated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Generated At"
+          },
+          "uncertainty_score": {
+            "type": "number",
+            "title": "Uncertainty Score"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ddx",
+          "treatment",
+          "risk",
+          "explanations",
+          "generated_at",
+          "uncertainty_score"
+        ],
+        "title": "ClinicalRecommendation"
+      },
+      "ComplicationRisks": {
+        "properties": {
+          "risks": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Risks"
+          }
+        },
+        "type": "object",
+        "title": "ComplicationRisks"
+      },
+      "ConfirmPayload": {
+        "properties": {
+          "clinician_id": {
+            "type": "string",
+            "title": "Clinician Id"
+          },
+          "recommendation_id": {
+            "type": "string",
+            "title": "Recommendation Id"
+          },
+          "confirmed": {
+            "type": "boolean",
+            "title": "Confirmed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "clinician_id",
+          "recommendation_id",
+          "confirmed"
+        ],
+        "title": "ConfirmPayload"
+      },
+      "DDxOutput": {
+        "properties": {
+          "diagnoses": {
+            "items": {
+              "$ref": "#/components/schemas/Diagnosis"
+            },
+            "type": "array",
+            "title": "Diagnoses"
+          }
+        },
+        "type": "object",
+        "title": "DDxOutput"
+      },
+      "Diagnosis": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "icd10_code": {
+            "type": "string",
+            "title": "Icd10 Code"
+          },
+          "confidence": {
+            "type": "number",
+            "title": "Confidence"
+          },
+          "evidence_snippets": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Evidence Snippets"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "icd10_code",
+          "confidence"
+        ],
+        "title": "Diagnosis"
+      },
+      "DiagnosticReportPayload": {
+        "properties": {
+          "patient_id": {
+            "type": "string",
+            "title": "Patient Id"
+          },
+          "recommendation": {
+            "$ref": "#/components/schemas/ClinicalRecommendation-Input"
+          }
+        },
+        "type": "object",
+        "required": [
+          "patient_id",
+          "recommendation"
+        ],
+        "title": "DiagnosticReportPayload"
+      },
+      "DriftResult": {
+        "properties": {
+          "statistic": {
+            "type": "number",
+            "title": "Statistic"
+          },
+          "p_value": {
+            "type": "number",
+            "title": "P Value"
+          },
+          "is_drift": {
+            "type": "boolean",
+            "title": "Is Drift"
+          },
+          "threshold": {
+            "type": "number",
+            "title": "Threshold",
+            "default": 0.05
+          }
+        },
+        "type": "object",
+        "required": [
+          "statistic",
+          "p_value",
+          "is_drift"
+        ],
+        "title": "DriftResult"
+      },
+      "ExplanationBundle": {
+        "properties": {
+          "shap": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ShapOutput"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lime": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LimeOutput"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "gradcam": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GradCamOutput"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "ExplanationBundle"
+      },
+      "FeedbackPayload": {
+        "properties": {
+          "recommendation_id": {
+            "type": "string",
+            "title": "Recommendation Id"
+          },
+          "clinician_id": {
+            "type": "string",
+            "title": "Clinician Id"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "accept",
+              "modify",
+              "reject"
+            ],
+            "title": "Action"
+          },
+          "free_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Free Text"
+          },
+          "patient_id": {
+            "type": "string",
+            "title": "Patient Id",
+            "default": "unknown"
+          }
+        },
+        "type": "object",
+        "required": [
+          "recommendation_id",
+          "clinician_id",
+          "action"
+        ],
+        "title": "FeedbackPayload"
+      },
+      "FeedbackResponse": {
+        "properties": {
+          "saved": {
+            "type": "boolean",
+            "title": "Saved"
+          },
+          "kafka_published": {
+            "type": "boolean",
+            "title": "Kafka Published"
+          },
+          "reward": {
+            "type": "number",
+            "title": "Reward"
+          }
+        },
+        "type": "object",
+        "required": [
+          "saved",
+          "kafka_published",
+          "reward"
+        ],
+        "title": "FeedbackResponse"
+      },
+      "GateActionResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "timestamp"
+        ],
+        "title": "GateActionResponse"
+      },
+      "GatedRecommendation": {
+        "properties": {
+          "recommendation": {
+            "$ref": "#/components/schemas/ClinicalRecommendation-Output"
+          },
+          "requires_confirmation": {
+            "type": "boolean",
+            "title": "Requires Confirmation",
+            "default": true
+          },
+          "escalation_level": {
+            "type": "string",
+            "enum": [
+              "routine",
+              "urgent",
+              "critical"
+            ],
+            "title": "Escalation Level"
+          },
+          "override_allowed": {
+            "type": "boolean",
+            "title": "Override Allowed",
+            "default": true
+          },
+          "safety_warning": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Safety Warning"
+          }
+        },
+        "type": "object",
+        "required": [
+          "recommendation",
+          "escalation_level"
+        ],
+        "title": "GatedRecommendation"
+      },
+      "GradCamOutput": {
+        "properties": {
+          "heatmap_path": {
+            "type": "string",
+            "title": "Heatmap Path",
+            "default": ""
+          },
+          "confidence": {
+            "type": "number",
+            "title": "Confidence",
+            "default": 0.0
+          }
+        },
+        "type": "object",
+        "title": "GradCamOutput"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Overall health status"
+          },
+          "service": {
+            "type": "string",
+            "title": "Service",
+            "description": "Logical service name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "service"
+        ],
+        "title": "HealthResponse",
+        "description": "Health check payload shared with the web client."
+      },
+      "LimeOutput": {
+        "properties": {
+          "top_words": {
+            "items": {
+              "prefixItems": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array",
+              "maxItems": 2,
+              "minItems": 2
+            },
+            "type": "array",
+            "title": "Top Words"
+          }
+        },
+        "type": "object",
+        "title": "LimeOutput"
+      },
+      "MonitoringIngestResponse": {
+        "properties": {
+          "drift_report": {
+            "$ref": "#/components/schemas/StatisticalDriftReport"
+          },
+          "performance": {
+            "$ref": "#/components/schemas/PerformanceSnapshot"
+          },
+          "concept_drift": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "type": "object",
+            "title": "Concept Drift"
+          },
+          "retrigger_event": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RetriggerEvent"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "drift_report",
+          "performance",
+          "concept_drift",
+          "retrigger_event"
+        ],
+        "title": "MonitoringIngestResponse"
+      },
+      "MonitoringPayload": {
+        "properties": {
+          "reference": {
+            "items": {
+              "additionalProperties": {
+                "type": "number"
+              },
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Reference"
+          },
+          "current": {
+            "items": {
+              "additionalProperties": {
+                "type": "number"
+              },
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Current"
+          },
+          "predictions": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Predictions"
+          },
+          "ground_truth": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Ground Truth"
+          },
+          "sensitive_attrs": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Sensitive Attrs"
+          },
+          "error_rate": {
+            "type": "number",
+            "title": "Error Rate"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reference",
+          "current",
+          "predictions",
+          "ground_truth",
+          "sensitive_attrs",
+          "error_rate"
+        ],
+        "title": "MonitoringPayload"
+      },
+      "OverridePayload": {
+        "properties": {
+          "clinician_id": {
+            "type": "string",
+            "title": "Clinician Id"
+          },
+          "recommendation_id": {
+            "type": "string",
+            "title": "Recommendation Id"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "clinician_id",
+          "recommendation_id",
+          "reason"
+        ],
+        "title": "OverridePayload"
+      },
+      "PSIResult": {
+        "properties": {
+          "psi_score": {
+            "type": "number",
+            "title": "Psi Score"
+          },
+          "is_drift": {
+            "type": "boolean",
+            "title": "Is Drift"
+          },
+          "threshold": {
+            "type": "number",
+            "title": "Threshold",
+            "default": 0.2
+          }
+        },
+        "type": "object",
+        "required": [
+          "psi_score",
+          "is_drift"
+        ],
+        "title": "PSIResult"
+      },
+      "PerformanceSnapshot": {
+        "properties": {
+          "auc": {
+            "type": "number",
+            "title": "Auc"
+          },
+          "f1": {
+            "type": "number",
+            "title": "F1"
+          },
+          "ece": {
+            "type": "number",
+            "title": "Ece"
+          },
+          "fairness_gap": {
+            "type": "number",
+            "title": "Fairness Gap"
+          },
+          "n_samples": {
+            "type": "integer",
+            "title": "N Samples"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "auc",
+          "f1",
+          "ece",
+          "fairness_gap",
+          "n_samples",
+          "timestamp"
+        ],
+        "title": "PerformanceSnapshot"
+      },
+      "ReadmissionRisk": {
+        "properties": {
+          "probability": {
+            "type": "number",
+            "title": "Probability"
+          },
+          "risk_tier": {
+            "type": "string",
+            "title": "Risk Tier"
+          }
+        },
+        "type": "object",
+        "required": [
+          "probability",
+          "risk_tier"
+        ],
+        "title": "ReadmissionRisk"
+      },
+      "Recommendation": {
+        "properties": {
+          "intervention": {
+            "type": "string",
+            "title": "Intervention"
+          },
+          "guideline_source": {
+            "type": "string",
+            "title": "Guideline Source"
+          },
+          "evidence_level": {
+            "type": "string",
+            "title": "Evidence Level"
+          },
+          "contraindications": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Contraindications"
+          }
+        },
+        "type": "object",
+        "required": [
+          "intervention",
+          "guideline_source",
+          "evidence_level"
+        ],
+        "title": "Recommendation"
+      },
+      "RetriggerEvent": {
+        "properties": {
+          "trigger_reason": {
+            "type": "string",
+            "title": "Trigger Reason"
+          },
+          "shadow_mode": {
+            "type": "boolean",
+            "title": "Shadow Mode",
+            "default": true
+          },
+          "alert_timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Alert Timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "trigger_reason",
+          "alert_timestamp"
+        ],
+        "title": "RetriggerEvent"
+      },
+      "RiskPrognosisOutput": {
+        "properties": {
+          "readmission": {
+            "$ref": "#/components/schemas/ReadmissionRisk"
+          },
+          "survival": {
+            "$ref": "#/components/schemas/SurvivalCurve"
+          },
+          "complications": {
+            "$ref": "#/components/schemas/ComplicationRisks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "readmission",
+          "survival",
+          "complications"
+        ],
+        "title": "RiskPrognosisOutput"
+      },
+      "SaMDMetadata": {
+        "properties": {
+          "class_": {
+            "type": "string",
+            "title": "Class",
+            "default": "II"
+          },
+          "regulation": {
+            "type": "string",
+            "title": "Regulation",
+            "default": "FDA 21 CFR Part 11 / EU MDR / ISO 13485"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version"
+        ],
+        "title": "SaMDMetadata"
+      },
+      "ShapOutput": {
+        "properties": {
+          "feature_importances": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Feature Importances"
+          },
+          "base_value": {
+            "type": "number",
+            "title": "Base Value",
+            "default": 0.0
+          }
+        },
+        "type": "object",
+        "title": "ShapOutput"
+      },
+      "StatisticalDriftReport": {
+        "properties": {
+          "ks_results": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/DriftResult"
+            },
+            "type": "object",
+            "title": "Ks Results"
+          },
+          "psi_results": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/PSIResult"
+            },
+            "type": "object",
+            "title": "Psi Results"
+          },
+          "mmd_result": {
+            "$ref": "#/components/schemas/DriftResult"
+          },
+          "kl_results": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Kl Results"
+          }
+        },
+        "type": "object",
+        "required": [
+          "mmd_result"
+        ],
+        "title": "StatisticalDriftReport"
+      },
+      "SurvivalCurve": {
+        "properties": {
+          "time_points": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Time Points"
+          },
+          "survival_probabilities": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Survival Probabilities"
+          }
+        },
+        "type": "object",
+        "title": "SurvivalCurve"
+      },
+      "TreatmentPlan": {
+        "properties": {
+          "recommendations": {
+            "items": {
+              "$ref": "#/components/schemas/Recommendation"
+            },
+            "type": "array",
+            "title": "Recommendations"
+          },
+          "requires_specialist_review": {
+            "type": "boolean",
+            "title": "Requires Specialist Review",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "TreatmentPlan"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

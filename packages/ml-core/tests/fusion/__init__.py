@@ -1,0 +1,2 @@
+"""Fusion module tests."""
+

@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: amca-config
+  namespace: amca
+data:
+  API_CORS_ORIGINS: "http://amca-web:3000"
+  INTERNAL_API_URL: "http://amca-api:8000"
+  NEXT_PUBLIC_API_URL: "http://amca-web:3000"
+  REDIS_URL: "redis://amca-redis:6379/0"
+  KAFKA_BOOTSTRAP: "amca-kafka:9092"
+  DATABASE_URL: "postgresql://postgres:<DB_PASSWORD>@amca-postgres:5432/amca"
+  APP_VERSION: "0.1.0"
+

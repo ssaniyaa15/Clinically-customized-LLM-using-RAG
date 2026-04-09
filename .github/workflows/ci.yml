@@ -1,0 +1,124 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Poetry
+        run: pip install poetry==1.8.4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: |
+          poetry install
+          pnpm install
+
+      - name: Lint (Python)
+        run: |
+          poetry run black --check apps packages
+          poetry run isort --check-only apps packages
+          poetry run ruff check apps packages
+          poetry run mypy apps/api/src packages/shared-types/python packages/ml-core/src
+
+      - name: Lint (JS)
+        run: |
+          pnpm --filter @amca/web exec eslint . --max-warnings 0
+          pnpm exec prettier --check "apps/web/**/*.{ts,tsx,js,jsx,json,css,md}" "packages/shared-types/src/**/*.{ts,tsx}" "prettier.config.mjs"
+
+  test:
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Poetry
+        run: pip install poetry==1.8.4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: |
+          poetry install
+          pnpm install
+
+      - name: Test
+        run: |
+          poetry run pytest
+          pnpm -r --if-present run test
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Poetry
+        run: pip install poetry==1.8.4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: |
+          poetry install
+          pnpm install
+
+      - name: Build
+        run: |
+          poetry build
+          pnpm -r --if-present run build
+
+  docker-push:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Docker push (placeholder)
+        run: |
+          echo "Replace with: docker buildx build --push -f infra/docker/Dockerfile.api -t ghcr.io/${{ github.repository }}/api:latest ."
+          echo "Replace with: docker buildx build --push -f infra/docker/Dockerfile.web -t ghcr.io/${{ github.repository }}/web:latest ."

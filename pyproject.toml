@@ -1,0 +1,132 @@
+[tool.poetry]
+name = "amca-monorepo"
+version = "0.1.0"
+description = "Autonomous Multimodal Clinical AI Assistant — Python workspace"
+authors = ["AMCA Team"]
+readme = "README.md"
+packages = [
+    { include = "amca_api", from = "apps/api/src" },
+    { include = "ingestion", from = "apps/api/src" },
+    { include = "preprocessing", from = "apps/api/src" },
+    { include = "reasoning", from = "apps/api/src" },
+    { include = "monitoring", from = "apps/api/src" },
+    { include = "safety", from = "apps/api/src" },
+    { include = "output", from = "apps/api/src" },
+    { include = "fusion", from = "packages/ml-core/src" },
+    { include = "learning", from = "packages/ml-core/src" },
+    { include = "amca_shared_types", from = "packages/shared-types/python" },
+    { include = "amca_ml_core", from = "packages/ml-core/src" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.115.0"
+uvicorn = { extras = ["standard"], version = "^0.32.0" }
+pydantic = "^2.10.0"
+pydantic-settings = "^2.6.0"
+hl7 = "^0.4.5"
+fhirclient = "^4.3.2"
+pydicom = "^2.4.4"
+nibabel = "^5.3.2"
+confluent-kafka = "^2.6.1"
+sqlalchemy = "^2.0.36"
+pandas = "^2.2.3"
+scikit-learn = "^1.5.2"
+torch = "^2.5.1"
+torchvision = "^0.20.1"
+transformers = "^4.46.3"
+openai = "^1.54.4"
+faiss-cpu = "^1.9.0.post1"
+pyyaml = "^6.0.2"
+shap = "^0.46.0"
+lime = "^0.2.0.1"
+peft = "^0.14.0"
+flwr = "^1.13.1"
+opacus = "^1.5.2"
+alibi-detect = "^0.12.0"
+river = "^0.21.2"
+fairlearn = "^0.12.0"
+redis = "^5.2.1"
+python-multipart = "^0.0.12"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.0"
+pytest-asyncio = "^0.24.0"
+httpx = "^0.28.0"
+black = "^24.10.0"
+isort = "^5.13.0"
+ruff = "^0.8.0"
+mypy = "^1.13.0"
+pre-commit = "^4.0.0"
+types-requests = "^2.32.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+extend-exclude = "/(node_modules|\\.next|dist|build)/"
+
+[tool.isort]
+profile = "black"
+line_length = 100
+known_first_party = ["amca_api", "amca_shared_types", "amca_ml_core"]
+skip = ["node_modules", ".next", "dist", "build"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["node_modules", ".next", "dist", "build"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+packages = ["amca_api", "ingestion", "preprocessing", "reasoning", "monitoring", "safety", "output", "fusion", "learning", "amca_shared_types", "amca_ml_core"]
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+
+[[tool.mypy.overrides]]
+module = ["hl7", "fhirclient.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["pandas", "pandas.*", "sklearn", "sklearn.*", "torchvision", "torchvision.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["torch", "torch.*", "transformers", "transformers.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["openai", "openai.*", "faiss", "shap", "lime", "yaml", "joblib"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["redis", "redis.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["peft", "peft.*", "flwr", "flwr.*", "opacus", "opacus.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["alibi_detect", "alibi_detect.*", "river", "river.*", "fairlearn", "fairlearn.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["scipy", "scipy.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+addopts = "--import-mode=importlib"
+testpaths = ["apps/api/tests", "packages/ml-core/tests", "packages/shared-types/python/tests"]
