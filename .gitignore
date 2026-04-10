@@ -1,6 +1,8 @@
 # Python
 __pycache__/
 *.py[cod]
+*.pyc
+*.pyo
 *$py.class
 *.so
 .Python
@@ -27,6 +29,7 @@ out/
 # Env & local
 .env
 .env.local
+.env.*.local
 *.pem
 
 # IDE
@@ -37,6 +40,12 @@ out/
 # OS
 .DS_Store
 Thumbs.db
+
+# ML / large binaries
+*.pt
+*.bin
+*.safetensors
+*.ckpt
 
 # Logs
 *.log

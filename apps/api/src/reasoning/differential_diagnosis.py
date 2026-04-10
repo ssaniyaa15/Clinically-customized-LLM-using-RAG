@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 from dataclasses import dataclass
@@ -8,6 +9,7 @@ from typing import Any, cast
 import numpy as np
 from numpy.typing import NDArray
 from pydantic import BaseModel, Field
+from shared.llm_client import llm_complete
 
 transformers: Any
 try:
@@ -19,12 +21,6 @@ try:
     import faiss
 except Exception:  # pragma: no cover
     faiss = None
-
-openai_module: Any
-try:
-    import openai as openai_module
-except Exception:  # pragma: no cover
-    openai_module = None
 
 redis_module: Any
 try:
@@ -42,6 +38,7 @@ class Diagnosis(BaseModel):
 
 class DDxOutput(BaseModel):
     diagnoses: list[Diagnosis] = Field(default_factory=list)
+    parse_error: bool = False
 
 
 @dataclass
@@ -51,14 +48,11 @@ class RetrievedChunk:
 
 
 class DifferentialDiagnosisHead:
-    """RAG-based differential diagnosis using FAISS retrieval and an OpenAI-compatible LLM."""
+    """RAG-based differential diagnosis using FAISS retrieval and a local LLM."""
 
     def __init__(self) -> None:
         self.index_path = os.getenv("DDX_FAISS_INDEX_PATH", "models/ddx_index.faiss")
         self.chunks_path = os.getenv("DDX_CHUNKS_PATH", "models/ddx_chunks.json")
-        self.llm_base_url = os.getenv("LLM_BASE_URL", "http://localhost:8001/v1")
-        self.llm_model = os.getenv("LLM_MODEL", "gpt-4o-mini")
-        self.llm_api_key = os.getenv("LLM_API_KEY", "dummy")
         self.redis_client = self._build_redis_client()
         self.encoder = self._build_encoder()
         self.index = self._load_index()
@@ -148,40 +142,49 @@ class DifferentialDiagnosisHead:
         return list(rows)
 
     @staticmethod
-    def _build_prompt(query: str, retrieved: list[RetrievedChunk]) -> str:
-        context = "\n\n".join([f"- {chunk.text}" for chunk in retrieved]) or "No context retrieved."
+    def _build_user_prompt(patient_context: str, retrieved: list[RetrievedChunk]) -> str:
+        retrieved_chunks = "\n".join([chunk.text for chunk in retrieved]) or "No evidence retrieved."
         return (
-            "You are a clinical decision support model.\n"
-            "Return ONLY JSON in format: "
-            '{"diagnoses":[{"name":"...","icd10_code":"...","confidence":0.0,"evidence_snippets":["..."]}]}\n'
-            f"Clinical query:\n{query}\n\nRetrieved context:\n{context}\n"
+            f"Patient context:\n{patient_context}\n\n"
+            f"Retrieved evidence:\n{retrieved_chunks}\n\n"
+            "Return JSON: [{'name': str, 'icd10_code': str, 'confidence': float, "
+            "'evidence_snippets': [str]}]"
         )
 
-    def _call_llm(self, prompt: str) -> str:
-        if openai_module is None:
-            return '{"diagnoses":[]}'
-        client = openai_module.OpenAI(base_url=self.llm_base_url, api_key=self.llm_api_key)
-        resp = client.chat.completions.create(
-            model=self.llm_model,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.1,
+    async def _call_llm(self, patient_context: str, retrieved: list[RetrievedChunk]) -> str:
+        response = await llm_complete(
+            system_prompt=(
+                "You are a clinical AI assistant. You MUST:\n"
+                "* Only answer healthcare-related questions.\n"
+                "* Use ONLY the provided patient medical context.\n"
+                "* If the question is not medical, respond exactly: "
+                "'I can only assist with health-related queries.'\n"
+                "* Never hallucinate facts not present in patient data.\n"
+                "* Never provide a definitive diagnosis.\n"
+                "* Always recommend consulting a doctor.\n"
+                "Return only a JSON array of differential diagnoses."
+            ),
+            user_prompt=self._build_user_prompt(patient_context=patient_context, retrieved=retrieved),
+            json_mode=True,
         )
-        return str(resp.choices[0].message.content or '{"diagnoses":[]}')
+        return response.content
 
     @staticmethod
     def _parse_response(raw: str) -> DDxOutput:
         try:
             data = json.loads(raw)
-        except json.JSONDecodeError:
-            data = {"diagnoses": []}
-        output = DDxOutput(**data)
+            if not isinstance(data, list):
+                raise ValueError("Expected JSON list of diagnoses")
+            diagnoses = [Diagnosis(**item) for item in data]
+        except Exception:
+            return DDxOutput(diagnoses=[], parse_error=True)
+        output = DDxOutput(diagnoses=diagnoses, parse_error=False)
         ranked = sorted(output.diagnoses, key=lambda d: d.confidence, reverse=True)
-        return DDxOutput(diagnoses=ranked)
+        return DDxOutput(diagnoses=ranked, parse_error=False)
 
     def run(self, query: str) -> DDxOutput:
         emb = self._embed_query(query)
         retrieved = self._retrieve(emb, top_k=5)
-        prompt = self._build_prompt(query, retrieved)
-        response = self._call_llm(prompt)
+        response = asyncio.run(self._call_llm(patient_context=query, retrieved=retrieved))
         return self._parse_response(response)
 

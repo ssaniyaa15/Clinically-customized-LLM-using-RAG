@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { MessageCircle } from "lucide-react";
 
 import { PatientSelector } from "@/components/dashboard/patient-selector";
 
@@ -10,6 +11,7 @@ const LINKS = [
   { href: "/dashboard/risk", label: "Risk" },
   { href: "/dashboard/monitoring", label: "Monitoring" },
   { href: "/dashboard/audit", label: "Audit" },
+  { href: "/chat", label: "Patient Chat" },
 ];
 
 export default function DashboardLayout({
@@ -33,8 +35,9 @@ export default function DashboardLayout({
           <Link
             key={link.href}
             href={link.href}
-            className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50"
+            className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50"
           >
+            {link.label === "Patient Chat" ? <MessageCircle className="h-4 w-4" /> : null}
             {link.label}
           </Link>
         ))}

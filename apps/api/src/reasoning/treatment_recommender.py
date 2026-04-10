@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import os
 from typing import Any
 
@@ -11,6 +12,7 @@ except Exception:  # pragma: no cover
     yaml = None
 
 from reasoning.differential_diagnosis import Diagnosis, DDxOutput
+from shared.llm_client import llm_complete
 
 
 class Recommendation(BaseModel):
@@ -23,6 +25,30 @@ class Recommendation(BaseModel):
 class TreatmentPlan(BaseModel):
     recommendations: list[Recommendation] = Field(default_factory=list)
     requires_specialist_review: bool = False
+    treatment_rationale: str = ""
+
+
+async def explain_treatment(plan: TreatmentPlan, top_diagnosis: Diagnosis) -> str:
+    response = await llm_complete(
+        system_prompt=(
+            "You are a clinical AI assistant. You MUST:\n"
+            "* Only answer healthcare-related questions.\n"
+            "* Use ONLY the provided patient medical context.\n"
+            "* If the question is not medical, respond exactly: "
+            "'I can only assist with health-related queries.'\n"
+            "* Never hallucinate facts not present in patient data.\n"
+            "* Never provide a definitive diagnosis.\n"
+            "* Always recommend consulting a doctor.\n"
+            "Explain treatment rationale in calm, plain language."
+        ),
+        user_prompt=(
+            f"Diagnosis: {top_diagnosis.name} ({top_diagnosis.icd10_code})\n"
+            f"Treatment plan:\n{plan.model_dump_json(indent=2)}"
+        ),
+        temperature=0.1,
+        max_tokens=400,
+    )
+    return response.content
 
 
 class TreatmentRecommenderHead:
@@ -72,5 +98,10 @@ class TreatmentRecommenderHead:
                     contraindications=[str(x) for x in item.get("contraindications", [])],
                 )
             )
-        return TreatmentPlan(recommendations=recs, requires_specialist_review=False)
+        plan = TreatmentPlan(recommendations=recs, requires_specialist_review=False)
+        try:
+            plan.treatment_rationale = asyncio.run(explain_treatment(plan, top))
+        except Exception:
+            plan.treatment_rationale = ""
+        return plan
 

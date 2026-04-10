@@ -12,12 +12,16 @@ services:
       REDIS_URL: redis://redis:6379/0
       DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-postgres}@postgres:5432/amca
       KAFKA_BOOTSTRAP: kafka:9092
+      # Inside the Docker network, MinIO is not reachable at localhost:9000
+      MINIO_ENDPOINT: minio:9000
     depends_on:
       postgres:
         condition: service_healthy
       kafka:
         condition: service_healthy
       redis:
+        condition: service_started
+      minio:
         condition: service_started
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
@@ -100,9 +104,24 @@ services:
     networks:
       - clinical-net
 
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
+    volumes:
+      - minio_data:/data
+    networks:
+      - clinical-net
+
 networks:
   clinical-net:
     driver: bridge
 
 volumes:
   postgres-data:
+  minio_data:

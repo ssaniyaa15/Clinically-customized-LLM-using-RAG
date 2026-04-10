@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 import torch
+from numpy.typing import NDArray
 
 from fusion.cross_modal_attention import CrossModalEmbedding
 from fusion.early_fusion import JointEmbedding
@@ -41,7 +42,7 @@ class FakeTx:
 
 
 class FakeRisk:
-    def run(self, features: np.ndarray) -> RiskPrognosisOutput:
+    def run(self, features: NDArray[np.float32]) -> RiskPrognosisOutput:
         _ = features
         return RiskPrognosisOutput(
             readmission=ReadmissionRisk(probability=0.2, risk_tier="low"),
@@ -51,8 +52,8 @@ class FakeRisk:
 
 
 class FakeExplain:
-    def explain(self, input_type: str, data: object) -> ExplanationBundle:
-        _ = (input_type, data)
+    def explain(self, input_type: str, data: object, ddx: DDxOutput | None = None) -> ExplanationBundle:
+        _ = (input_type, data, ddx)
         return ExplanationBundle(
             shap=ShapOutput(feature_importances={"a": 0.1}, base_value=0.0),
             lime=LimeOutput(top_words=[("fever", 0.2)]),

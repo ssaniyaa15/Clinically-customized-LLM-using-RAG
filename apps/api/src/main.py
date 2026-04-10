@@ -18,6 +18,7 @@ from typing import cast
 
 from amca_api.config import get_settings
 from amca_api.routes import health
+from chatbot.chat_router import router as chat_router
 from fusion.fusion_router import FusionRouter
 from ingestion.ehr_connector import EHRConnector, PatientRecord
 from ingestion.imaging_connector import ImagingConnector, ModalityPayload
@@ -25,6 +26,7 @@ from monitoring.monitoring_api import router as monitoring_router
 from output.feedback_capture import router as feedback_router
 from output.fhir_integration import router as fhir_router
 from output.integration_api import router as output_router
+from patients.patient_router import router as patient_router
 from preprocessing.preprocessor_pipeline import PreprocessorPipeline, RawIngestionBundle
 from reasoning.reasoning_orchestrator import ClinicalRecommendation, ReasoningOrchestrator
 from safety.human_in_loop import GatedRecommendation, gate_router
@@ -73,6 +75,8 @@ app.include_router(gate_router)
 app.include_router(fhir_router)
 app.include_router(feedback_router)
 app.include_router(output_router)
+app.include_router(patient_router)
+app.include_router(chat_router)
 
 
 @app.get("/")

@@ -1,71 +1,181 @@
-# Autonomous Multimodal Clinical AI Assistant (AMCA)
+#  Autonomous Multimodal Clinical AI Assistant
 
-## Architecture Overview
+> A clinical decision support system integrating multimodal AI, real-time monitoring, and human-in-the-loop validation — built as a full-stack research prototype.
 
-**Ingestion layer (`apps/api/src/ingestion`)** normalizes EHR (HL7/FHIR/DICOM), imaging, wearable, NLP, and omics inputs into canonical payloads. It provides a unified substrate for downstream processing and event publication.
 
-**Preprocessing layer (`apps/api/src/preprocessing`)** performs ontology harmonization, de-identification, tabular imputation/QC, and image normalization/augmentation. It orchestrates sequential + parallel preprocessing stages before model inference.
+---
 
-**Fusion + reasoning layer (`packages/ml-core/src/fusion`, `apps/api/src/reasoning`)** builds multimodal representations (early/cross/late fusion), produces differential diagnosis, treatment, risk prognosis, and explainability outputs, and prepares clinical recommendations.
+## What This Is
 
-**Safety + monitoring layer (`apps/api/src/safety`, `apps/api/src/monitoring`)** applies uncertainty checks, subgroup bias auditing, compliance audit trails, human-in-the-loop gating, and drift/performance surveillance with retraining trigger conditions.
+A full-stack AI system that simulates how a hospital-grade clinical assistant could work. It ingests multimodal patient data (EHR records, medical images, clinical notes, wearable signals), reasons over them using an LLM + RAG pipeline, and surfaces decisions with explainability, uncertainty estimates, and drift alerts — always keeping a clinician in the loop.
 
-**Output + integration layer (`apps/api/src/output`, `apps/web`)** delivers SMART-on-FHIR and HL7/FHIR outputs, clinician feedback capture to RLHF, and a Next.js clinical dashboard with typed backend integration and confirm/override workflows.
+The goal isn't to replace doctors. It's to show what responsible AI infrastructure in healthcare could look like.
 
-## Quick Start
+---
+
+## Architecture
+→ [Full architecture breakdown](/docs/architecture.md)
+Ingestion → Preprocessing → Fusion → Reasoning → Safety → Output
+↓
+Monitoring & Self-Learning
+
+| Layer | What it does |
+|---|---|
+| **Ingestion** | Collects EHR, imaging, notes, wearable streams |
+| **Preprocessing** | De-identification, normalization, standardization |
+| **Fusion** | Early fusion, cross-modal attention, late fusion |
+| **Reasoning** | LLM + RAG for diagnosis support and treatment suggestions |
+| **Safety** | Uncertainty estimation, bias auditing, human validation gate |
+| **Output** | Clinical reports, risk scores, chatbot responses, alerts |
+| **Monitoring** | Drift detection (PSI, KS, MMD), AUC/F1 tracking |
+| **Learning** | RLHF from clinician feedback, active learning, experience replay |
+
+---
+
+## Key Features
+
+**Multimodal Reasoning**
+Combines structured EHR data, unstructured clinical notes (BioClinicalBERT), and medical images (ResNet-50) through transformer-based fusion.
+
+**LLM + RAG Pipeline**
+Context-aware diagnosis support and explanations grounded in retrieved clinical knowledge. Supports OpenAI or local Ollama (llama3).
+
+**24/7 AI Nurse Chatbot**
+Patient-facing assistant with urgency detection (normal → emergency escalation), Redis-backed session memory, and safe response guardrails.
+
+**Risk & Prognosis Prediction**
+Readmission risk scoring and survival analysis using logistic regression on fused embeddings.
+
+**Explainability**
+SHAP and LIME explanations on every prediction — because black-box AI has no place in clinical settings.
+
+**Drift Detection**
+PSI (Population Stability Index), KS tests, and MMD monitor for distribution shift in incoming data over time.
+
+**Self-Learning Loop**
+RLHF from clinician feedback, uncertainty-based active learning, and continual learning with experience replay.
+
+---
+
+## ML Components
+
+| Component | Approach |
+|---|---|
+| Clinical text | BioClinicalBERT |
+| Medical imaging | ResNet-50 |
+| Multimodal fusion | Transformer + MLP |
+| Risk prediction | Logistic Regression |
+| Reasoning | LLM (OpenAI / Ollama) + RAG |
+| Explainability | SHAP, LIME |
+| Drift detection | PSI, KS Test, MMD |
+
+---
+
+## Tech Stack
+
+**Backend:** FastAPI (Python 3.11), PyTorch, scikit-learn, HuggingFace Transformers  
+**Frontend:** Next.js 14, TypeScript, Tailwind CSS, shadcn/ui  
+**Infrastructure:** Docker Compose, PostgreSQL, Redis, Kafka + Zookeeper, MinIO  
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Docker Desktop
+- Ollama (for local LLM inference)
+- Node.js / Python 3.11 (optional, for local dev outside Docker)
+
+### 1. Clone & configure
 
 ```bash
-git clone <your-repo-url>
-cd c-PCL-project-2026
+git clone https://github.com/your-username/PCL_project_2026
+cd PCL_project_2026
 cp .env.example .env
-make docker-up
 ```
 
-Open [http://localhost:3000](http://localhost:3000) for the clinical dashboard and [http://localhost:8000/docs](http://localhost:8000/docs) for API docs.
+### 2. Set up local LLM (Ollama)
 
-## Environment Variables
+In your `.env`:
 
-| Variable | Purpose | Example |
-|---|---|---|
-| `API_CORS_ORIGINS` | Allowed frontend origins for FastAPI CORS | `http://localhost:3000` |
-| `INTERNAL_API_URL` | Server-side Next.js API base URL | `http://api:8000` |
-| `NEXT_PUBLIC_API_URL` | Browser-visible API base URL | `http://localhost:8000` |
-| `LLM_BASE_URL` | OpenAI-compatible endpoint for DDx + summaries | `http://localhost:8001/v1` |
-| `LLM_MODEL` | LLM model identifier | `gpt-4o-mini` |
-| `LLM_API_KEY` | LLM API key/token | `sk-...` |
-| `DDX_FAISS_INDEX_PATH` | Local FAISS index path for RAG retrieval | `models/ddx_index.faiss` |
-| `DDX_CHUNKS_PATH` | Retrieved corpus chunk file | `models/ddx_chunks.json` |
-| `REDIS_URL` | Redis cache URL for retrieval caching | `redis://redis:6379/0` |
-| `KAFKA_BOOTSTRAP` | Kafka bootstrap server list | `kafka:9092` |
-| `COMPLIANCE_SECRET_KEY` | Signature key for audit log entries | `change-me` |
-| `APP_VERSION` | API/application version metadata | `0.1.0` |
-| `RETRAIN_PSI_THRESHOLD` | Drift threshold for retraining trigger | `0.2` |
-| `RETRAIN_AUC_DROP_THRESHOLD` | AUC degradation threshold | `0.05` |
-| `RETRAIN_FAIRNESS_GAP_THRESHOLD` | Fairness gap threshold | `0.1` |
-| `UNCERTAINTY_EPI_THRESHOLD` | Epistemic uncertainty escalation threshold | `0.2` |
-| `DB_PASSWORD` | Postgres password (docker/k8s) | `postgres` |
+```env
+LLM_BASE_URL=http://host.docker.internal:11434
+LLM_MODEL=llama3
+LLM_API_KEY=dummy
+```
 
-## Running Tests
+Pull and start the model:
 
 ```bash
-make test
+ollama run llama3
 ```
 
-## Triggering Retraining
-
-Use the monitoring ingest endpoint with a drift payload:
+### 3. Launch
 
 ```bash
-curl -X POST "http://localhost:8000/monitoring/ingest" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "reference":[{"a":1.0,"b":2.0},{"a":1.2,"b":2.1}],
-    "current":[{"a":2.0,"b":3.0},{"a":2.2,"b":3.1}],
-    "predictions":[0.2,0.8],
-    "ground_truth":[0,1],
-    "sensitive_attrs":[0,1],
-    "error_rate":0.25
-  }'
+docker-compose up --build
 ```
 
-If thresholds are exceeded, the API returns a retrigger event with `shadow_mode=true`.
+### 4. Access
+
+| Service | URL |
+|---|---|
+| Frontend | http://localhost:3000 |
+| Backend API docs | http://localhost:8000/docs |
+
+---
+
+## Data Storage
+
+| Data type | Store |
+|---|---|
+| Patient records | PostgreSQL |
+| Medical files & images | MinIO |
+| Chat sessions | Redis |
+| Event streams | Kafka |
+
+---
+
+## Safety & Compliance Design
+
+- **Human-in-the-loop gate** on all high-stakes predictions
+- **Uncertainty estimation** via MC Dropout and Conformal Prediction
+- **Bias auditing** across demographic subgroups
+- **Cryptographically signed audit logs**
+- Architecture follows SaMD (Software as a Medical Device) design principles
+
+---
+
+## Limitations
+
+This is a research prototype with simulated data. Specifically:
+
+- All patient data is synthetic / demo only
+- Models are pretrained baselines — not fine-tuned on real clinical data
+- Not evaluated on real hospital datasets
+- Not clinically validated or regulatory approved
+
+---
+
+## Roadmap
+
+- [ ] FHIR API integration for real EHR connectivity
+- [ ] Fine-tuned clinical LLM (e.g., on MIMIC-IV)
+- [ ] Advanced survival models (Cox PH, DeepSurv)
+- [ ] Federated learning across hospital nodes
+- [ ] Cloud deployment (AWS/GCP)
+
+---
+
+## Built By
+
+**Saniya Bhilare**  
+Computer Science Engineering, Jain University, Bangalore  
+[LinkedIn](https://www.linkedin.com/in/saniya-bhilare/) · [GitHub](https://github.com/ssaniyaa15)
+
+---
+
+## Acknowledgements
+
+HuggingFace · OpenAI · Ollama · PyTorch · scikit-learn

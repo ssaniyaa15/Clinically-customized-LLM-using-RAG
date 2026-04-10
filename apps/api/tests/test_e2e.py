@@ -2,13 +2,20 @@ import json
 
 from fastapi.testclient import TestClient
 from _pytest.monkeypatch import MonkeyPatch
+from unittest.mock import AsyncMock, patch
 
 from main import app
 
 
-def test_analyse_end_to_end_with_mocks(monkeypatch: MonkeyPatch) -> None:
+@patch("shared.llm_client.llm_complete", new_callable=AsyncMock)
+def test_analyse_end_to_end_with_mocks(mock_llm_complete: AsyncMock, monkeypatch: MonkeyPatch) -> None:
+    mock_llm_complete.return_value = type("Resp", (), {"content": "Mocked LLM output"})()
+    monkeypatch.setenv("LLM_API_KEY", "test-key")
     monkeypatch.setattr("reasoning.differential_diagnosis.faiss", None)
-    monkeypatch.setattr("reasoning.differential_diagnosis.openai_module", None)
+    monkeypatch.setattr("reasoning.differential_diagnosis.llm_complete", mock_llm_complete)
+    monkeypatch.setattr("reasoning.explainability.llm_complete", mock_llm_complete)
+    monkeypatch.setattr("reasoning.treatment_recommender.llm_complete", mock_llm_complete)
+    monkeypatch.setattr("safety.human_in_loop.llm_complete", mock_llm_complete)
     monkeypatch.setattr("output.feedback_capture.Producer", None)
     monkeypatch.setattr(
         "output.fhir_integration.build_diagnostic_report",

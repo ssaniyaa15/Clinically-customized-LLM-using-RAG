@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 import numpy as np
+from numpy.typing import NDArray
 from pydantic import BaseModel
 
 from fusion.fusion_router import FusedRepresentation
@@ -51,11 +52,11 @@ class ReasoningOrchestrator:
         )
 
     @staticmethod
-    def _extract_features(fused: FusedRepresentation) -> np.ndarray:
+    def _extract_features(fused: FusedRepresentation) -> NDArray[np.float32]:
         tensor = fused.early_embedding.tensor.detach().cpu().numpy()
         if tensor.ndim == 1:
             tensor = tensor.reshape(1, -1)
-        return tensor
+        return tensor.astype(np.float32)
 
     @staticmethod
     def _uncertainty_score(ddx: DDxOutput) -> float:
@@ -72,7 +73,7 @@ class ReasoningOrchestrator:
         risk = self.risk_head.run(features)
 
         explanations = {
-            "tabular": self.explainability_head.explain("tabular", features[0].tolist()[:16]),
+            "tabular": self.explainability_head.explain("tabular", features[0].tolist()[:16], ddx=ddx),
             "text": self.explainability_head.explain("text", query),
             "image": self.explainability_head.explain("image", None),
         }
